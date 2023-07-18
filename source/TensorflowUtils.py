@@ -6,6 +6,7 @@ from six.moves import urllib
 import tarfile
 import zipfile
 import scipy.io
+import imageio
 from tensorflow.contrib import rnn
 
 from tensorflow.python.ops import array_ops
@@ -23,7 +24,9 @@ def focal_loss(prediction_tensor, target_tensor, weights=None, alpha1=1, alpha2=
 def save_image(image, save_dir, name, mean=None):
     if mean:
         image = unprocess_image(image, mean)
-    misc.imsave(os.path.join(save_dir, name + ".png"), image)
+    #misc.imsave(os.path.join(save_dir, name + ".png"), image)
+    imageio.imwrite(os.path.join(save_dir, name + ".png"), image)
+    
 
 
 def get_variable(weights, name):
@@ -111,11 +114,11 @@ def RA_unit(x, h, w, n):
     x_2 = tf.zeros([1, h, w, 0], tf.float32)
     x_t_small = tf.zeros([1, x_1.shape[1].value, w/2, 0], tf.float32)
     for k in range(n):
-	x_t_1 = tf.slice(x_1, [0,k,0,0], [1,1,w/2,x.shape[3].value])
-	x_t_2 = tf.image.resize_images(x_t_1, [h,w], 1)
+        x_t_1 = tf.slice(x_1, [0,k,0,0], [1,1,w//2,x.shape[3].value])
+        x_t_2 = tf.image.resize_images(x_t_1, [h,w], 1)
         x_2 = tf.concat([x_2, x_t_2], axis=3)
-	x_t_3 = tf.abs(x - x_t_2)
-    	x_t = tf.concat([x_t, x_t_3], axis=3)
+        x_t_3 = tf.abs(x - x_t_2)
+        x_t = tf.concat([x_t, x_t_3], axis=3)
     x_out = tf.concat([x, x_t], axis=3)
     return x_out , x_2
 
